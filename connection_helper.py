@@ -3,6 +3,15 @@
 
 import socket
 import ssl
+from html.parser import HTMLParser
+
+
+class WebHTMLParser(HTMLParser):
+    def handle_starttag(self, tag, attrs):
+        if tag == 'a':
+            attrs = {k: v for (k, v) in attrs}
+            if 'href' in attrs:
+                print(attrs['href'])
 
 
 class HttpConnectionHelper:
@@ -43,7 +52,7 @@ class HttpConnectionHelper:
         Waits and receives a response form the server
         :return:
         """
-        return repr(self.internal_connection.recv(4096))
+        return self.internal_connection.recv(4096).decode()
 
     def close(self):
         """
@@ -58,10 +67,10 @@ if __name__ == "__main__":
     connection_helper.connect("localhost", 80, False)
     connection_helper.send_request("GET /example HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
     response = connection_helper.receive_response()
-    http_response_headers = repr(response)
-    print(http_response_headers)
-    response = connection_helper.receive_response()
-    http_response_headers = repr(response)
-    print(http_response_headers)
+
+    response1 = connection_helper.receive_response()
+
+    parser = WebHTMLParser()
+    parser.feed(response1)
 
 
