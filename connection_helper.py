@@ -9,7 +9,7 @@ from html.parser import HTMLParser
 class WebHTMLParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag == 'a':
-            attrs = {k: v for (k, v) in attrs}
+            attrs = {k: f"[{v.index(v) + 1}] -> " + v for (k, v) in attrs}
             if 'href' in attrs:
                 print(attrs['href'])
 
@@ -69,6 +69,9 @@ if __name__ == "__main__":
     response = connection_helper.receive_response()
 
     response1 = connection_helper.receive_response()
+
+    print(response)
+    #print(response1)
 
     parser = WebHTMLParser()
     parser.feed(response1)
