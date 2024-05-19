@@ -126,8 +126,8 @@ if __name__ == "__main__":
     for k, v in response_link_dict.items():  # execute get request or exit program (depending on number)
         if input_link_from_user == k:
             connection_helper = HttpConnectionHelper()
-            connection_helper.connect("localhost", 80, False)
-            connection_helper.send_request(f"GET /{v} HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
+            connection_helper.connect(host, 80, False)
+            connection_helper.send_request(f"GET /{v} HTTP/1.1\r\nHost: {host}\r\n\r\n")
             response = connection_helper.receive_response()
             http_response_headers = repr(response)
             print(http_response_headers)
