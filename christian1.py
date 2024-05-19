@@ -3,6 +3,7 @@
 
 import socket
 import ssl
+import sys
 from html.parser import HTMLParser
 
 count = 0 # with this counter variable we are tracking the amount of links
@@ -68,7 +69,7 @@ class HttpConnectionHelper:
 
 
 if __name__ == "__main__":
-    webpage_input = input("Enter a website address without prefix") # captures http page inserted by user
+    webpage_input = sys.argv[1] # captures webpage inserted by the user via terminal
     params = webpage_input.split("/", maxsplit=1) # split the input into address and request parameter
     params = [element for element in params if len(element) > 0]
     if len(params) == 2: # unpack the list into two variables if a parameter for the GET request is given
@@ -93,7 +94,9 @@ if __name__ == "__main__":
 
     _,x = head_response.split('\r\n',1) #filter out the status code from the response
     raw = x.split('\r\n') # each part of the response gets transformed to an element of a list
-    raw = [elem for elem in raw if len(elem) > 2] # filter out empty parts from response
+    # filter out empty parts from response
+    raw = [elem for elem in raw if len(elem) > 2 and not elem.startswith("\t") and elem not in ["<!DOCTYPE HTML>", "<html>"]]
+
 
     head_dict = {}
     for elem in raw:
