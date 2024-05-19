@@ -7,17 +7,41 @@ import sys
 from html.parser import HTMLParser
 
 count = 0 # with this counter variable we are tracking the amount of links
-response_link_dict = {} #global dictionary for storing the links
+response_dict = {} #global dictionary for storing the links
 
 #
 class WebHTMLParser(HTMLParser):
+
+
+
     def handle_starttag(self, tag, attrs):
+        """
+        Filters out links of requested page and transmits them to global dictionary
+
+        prerequisite set for handle_starttag method,a link has to contain at least one dot,
+        and/or a http or https prefix, www is not included, because it will be recognized along with the dot
+
+        transfers ordered links for global dictionary
+        {num_link: link address}
+        """
         global count
         global response_link_dict
-        if tag == 'a':
-            count += 1 # we are increasing it by 1 for the correct order of the links (number is matched with nth link)
-            attrs = {count: v for (k, v) in attrs} # create a dictionary with count as key and the name of the link as value
-            response_link_dict[count] = attrs[count] # insert this key,value pair to the global dictionary
+        if tag == 'a' :
+            # we are increasing it by 1 for the correct order of the links (number is matched with nth link)
+            count += 1
+            # create a dictionary with count as key and the name of the link as value
+            attrs = {count: v for (k, v) in attrs}
+            # if something is not a link, subtract the count with 1 e.g. <a href="example.com"  target="_blank">
+            if not attrs[count].startswith("http://") and not attrs[count].startswith("https://") and not "." in attrs[count]:
+                count = count - 1
+            elif attrs[count].startswith("http://"):
+                attrs[count] = attrs[count].removeprefix("http://")
+                #response_dict[count] = attrs[count] # insert this key,value pair to the global dictionary
+            elif attrs[count].startswith("https://"):
+                #attrs[count] = attrs[count].removeprefix("https://")
+                response_dict[count] = attrs[count] # insert this key, value pair to the global dictionary with prefix
+            elif "." in attrs[count]:
+                response_dict[count] = attrs[count]
 
 
 class HttpConnectionHelper:
@@ -77,13 +101,15 @@ if __name__ == "__main__":
         if address.endswith("/"): # remove slash if there is one at the end of the address parameter
             address = address.removesuffix("/")
 
-    else: # if not convert the list into a string and add a slash as default for the GET request
+    # if no request parameter present, convert the list into a string and
+    # add a slash as default parameter for the GET request
+    else:
         host = "".join(params)
         address = "/"
-        if host.endswith("/"): # remove the slash if it is present at the end of the input page
+        if host.endswith("/"): # remove the slash if it is present at the end of the input
             host = host.removesuffix("/")
 
-
+    # Create an instance of the HttpConnectionHelper class and connect to the input webpage
     connection_helper = HttpConnectionHelper()
     connection_helper.connect(host, 80, False)
     connection_helper.send_request(f"GET /{address} HTTP/1.1\r\nHost: {host}\r\n\r\n")
@@ -94,8 +120,9 @@ if __name__ == "__main__":
 
     _,x = head_response.split('\r\n',1) #filter out the status code from the response
     raw = x.split('\r\n') # each part of the response gets transformed to an element of a list
-    # filter out empty parts from response
-    raw = [elem for elem in raw if len(elem) > 2 and not elem.startswith("\t") and elem not in ["<!DOCTYPE HTML>", "<html>"]]
+    # filter out empty parts, tab stops and tags which are not needed from response
+    raw = [elem for elem in raw if len(elem) > 2 and not elem.startswith("\t") and
+           elem not in ["<!DOCTYPE HTML>", "<html>"]]
 
 
     head_dict = {}
@@ -113,20 +140,21 @@ if __name__ == "__main__":
 
     body_response = connection_helper.receive_response().decode()
 
-    parser = WebHTMLParser()
-    parser.feed(body_response)
-    for k,v in response_link_dict.items(): # print out body response using dictionary from above
+    parser = WebHTMLParser() # create WebHTMLParser instance to filter out links
+    parser.feed(body_response) # transfer request body as input
+    for k,v in response_dict.items(): # print out body response using global dictionary
         print(f"[{k}] Link {k} --> {v}")
 
 # Getting User Input for link selection
 
     input_link_from_user = int(input("Please enter a Number!\nPress 0 to Exit:"))
-    # ask User for a number (number decides whats gonna happen) e.g 0 to Exit program
+    # ask User for a number (number decides what's going to happen) e.g 0 to Exit program
 
-    for k, v in response_link_dict.items():  # execute get request or exit program (depending on number)
+    for k, v in response_dict.items():  # execute get request or exit program (depending on input)
         if input_link_from_user == k:
             connection_helper = HttpConnectionHelper()
             connection_helper.connect(host, 80, False)
+            # v - value of response_dict , host - host address extracted from user input(terminal)
             connection_helper.send_request(f"GET /{v} HTTP/1.1\r\nHost: {host}\r\n\r\n")
             response = connection_helper.receive_response()
             http_response_headers = repr(response)
