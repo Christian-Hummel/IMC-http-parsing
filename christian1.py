@@ -25,7 +25,7 @@ class WebHTMLParser(HTMLParser):
         {num_link: link address}
         """
         global count
-        global response_link_dict
+        global response_dict
         if tag == 'a' :
             # we are increasing it by 1 for the correct order of the links (number is matched with nth link)
             count += 1
@@ -36,7 +36,7 @@ class WebHTMLParser(HTMLParser):
                 count = count - 1
             elif attrs[count].startswith("http://"):
                 attrs[count] = attrs[count].removeprefix("http://")
-                #response_dict[count] = attrs[count] # insert this key,value pair to the global dictionary
+                response_dict[count] = attrs[count] # insert this key,value pair to the global dictionary
             elif attrs[count].startswith("https://"):
                 #attrs[count] = attrs[count].removeprefix("https://")
                 response_dict[count] = attrs[count] # insert this key, value pair to the global dictionary with prefix
