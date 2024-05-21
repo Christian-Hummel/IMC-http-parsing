@@ -122,7 +122,7 @@ if __name__ == "__main__":
     raw = x.split('\r\n') # each part of the response gets transformed to an element of a list
     # filter out empty parts, tab stops and tags which are not needed from response
     raw = [elem for elem in raw if len(elem) > 2 and not elem.startswith("\t") and
-           elem not in ["<!DOCTYPE HTML>", "<html>"]]
+           not elem.startswith("<")]
 
 
     head_dict = {}
