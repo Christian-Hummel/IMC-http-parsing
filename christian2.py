@@ -43,8 +43,6 @@ class WebHTMLParser(HTMLParser):
             elif "." in attrs[count]:
                 response_dict[count] = attrs[count]
 
-        if tag == 'ul':
-            print("ok")
 
 
 class HttpConnectionHelper:
